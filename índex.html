@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo Messier Completo (M1-M110) - Cuadrantes 90°</title>
+  <title>Catálogo Messier (M1-M110) - Cuadrantes Trípode 0°-90°</title>
   <style>
     :root {
       --bg: #0b0e14;
@@ -13,6 +13,7 @@
       --accent: #58a6ff;
       --highlight: #3fb950;
       --warn: #8b949e;
+      --dial: #f0883e;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -26,9 +27,14 @@
       margin: 0 auto 16px auto;
     }
     h1 {
-      margin: 0 0 10px 0;
+      margin: 0 0 6px 0;
       font-size: 1.35rem;
       color: #fff;
+    }
+    .alignment-note {
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-bottom: 12px;
     }
     .controls {
       background: var(--card-bg);
@@ -40,7 +46,7 @@
       gap: 10px;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
     .status-text {
       font-size: 0.85rem;
@@ -85,7 +91,7 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
       max-width: 1200px;
       margin: 0 auto;
@@ -94,10 +100,10 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
     }
     .card-header {
       display: flex;
@@ -105,7 +111,7 @@
       align-items: baseline;
     }
     .card-title {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: bold;
       color: #fff;
     }
@@ -115,21 +121,42 @@
       text-transform: uppercase;
       font-weight: 600;
     }
-    .target-az {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: var(--highlight);
+    .tripod-target {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
       margin: 4px 0;
+    }
+    .tripod-label {
+      font-size: 0.75rem;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tripod-value {
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: var(--dial);
+      margin: 2px 0;
+    }
+    .tripod-sector {
+      font-size: 0.85rem;
+      color: var(--highlight);
+      font-weight: 500;
     }
     .card-meta {
       font-size: 0.82rem;
       color: #8b949e;
-      line-height: 1.35;
+      line-height: 1.4;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
     }
     .below-horizon {
-      opacity: 0.35;
+      opacity: 0.4;
     }
-    .below-horizon .target-az {
+    .below-horizon .tripod-value {
       color: var(--warn);
     }
   </style>
@@ -137,7 +164,10 @@
 <body>
 
   <header>
-    <h1>Catálogo Messier Completo (Cuadrantes de 90°)</h1>
+    <h1>Catálogo Messier para Trípode (Escala 0° - 90°)</h1>
+    <div class="alignment-note">
+      🧭 <strong>Alineación:</strong> Trípode nivelado con la marca <strong>0° apuntando al Norte geográfico</strong>.
+    </div>
     <div class="controls">
       <div>
         <span id="coords-display" class="status-text">Lat: 37.18° N, Lon: -5.78° O</span> | 
@@ -154,7 +184,6 @@
   <div class="grid" id="catalog-container"></div>
 
   <script>
-    // Catálogo completo Messier M1 - M110 (J2000: RA en horas decimales, Dec en grados decimales)
     const MESSIER_DATA = [
       { id: "M1", name: "Nebulosa del Cangrejo", type: "Resto de supernova", con: "Tau", ra: 5.575, dec: 22.01 },
       { id: "M2", name: "", type: "Cúmulo globular", con: "Aqr", ra: 21.558, dec: -0.82 },
@@ -324,32 +353,28 @@
       return { az: az, alt: alt * r2d };
     }
 
-    function formatQuadrant90(az) {
-      let baseCardinal = "";
-      let offset = 0;
-      let direction = "";
+    // Conversión matemática para trípode alineado con 0° al Norte
+    function formatTripodQuadrant(az) {
+      let sectorName = "";
+      let dialDeg = 0;
 
-      if (az >= 315 || az < 45) {
-        baseCardinal = "N";
-        offset = az >= 315 ? az - 360 : az;
-        direction = offset >= 0 ? "E" : "O";
-      } else if (az >= 45 && az < 135) {
-        baseCardinal = "E";
-        offset = az - 90;
-        direction = offset >= 0 ? "S" : "N";
-      } else if (az >= 135 && az < 225) {
-        baseCardinal = "S";
-        offset = az - 180;
-        direction = offset >= 0 ? "O" : "E";
+      if (az >= 0 && az < 90) {
+        dialDeg = az;
+        sectorName = "Norte ➔ Este (1er sector)";
+      } else if (az >= 90 && az < 180) {
+        dialDeg = az - 90;
+        sectorName = "Este ➔ Sur (2º sector)";
+      } else if (az >= 180 && az < 270) {
+        dialDeg = az - 180;
+        sectorName = "Sur ➔ Oeste (3er sector)";
       } else {
-        baseCardinal = "O";
-        offset = az - 270;
-        direction = offset >= 0 ? "N" : "S";
+        dialDeg = az - 270;
+        sectorName = "Oeste ➔ Norte (4º sector)";
       }
 
-      const absOffset = Math.abs(offset).toFixed(2);
       return {
-        formatted: `${absOffset}° ${baseCardinal} (hacia ${direction})`,
+        dialValue: `${dialDeg.toFixed(1)}°`,
+        sector: sectorName,
         az360: az.toFixed(1)
       };
     }
@@ -365,7 +390,6 @@
       container.innerHTML = "";
 
       MESSIER_DATA.forEach(obj => {
-        // Filtro de búsqueda
         const matchSearch = obj.id.toLowerCase().includes(query) || 
                             obj.name.toLowerCase().includes(query) || 
                             obj.con.toLowerCase().includes(query);
@@ -376,7 +400,7 @@
 
         if (onlyVisible && !isVisible) return;
 
-        const quad = formatQuadrant90(az);
+        const tripod = formatTripodQuadrant(az);
 
         const card = document.createElement('div');
         card.className = `card ${!isVisible ? 'below-horizon' : ''}`;
@@ -385,11 +409,17 @@
             <span class="card-title">${obj.id}</span>
             <span class="card-type">${obj.con} &bull; ${obj.type}</span>
           </div>
-          ${obj.name ? `<div style="font-size: 0.9rem; font-weight: 500;">${obj.name}</div>` : ''}
-          <div class="target-az">${quad.formatted}</div>
+          ${obj.name ? `<div style="font-size: 0.92rem; font-weight: 500; color: #fff;">${obj.name}</div>` : ''}
+          
+          <div class="tripod-target">
+            <div class="tripod-label">Poner Trípode en:</div>
+            <div class="tripod-value">${tripod.dialValue}</div>
+            <div class="tripod-sector">${tripod.sector}</div>
+          </div>
+
           <div class="card-meta">
-            Azimut 360°: <strong>${quad.az360}°</strong><br>
-            Altitud: <strong>${alt.toFixed(1)}°</strong> ${isVisible ? '🟢' : '🔴'}
+            <span>Altitud: <strong>${alt.toFixed(1)}°</strong></span>
+            <span>Az real: <strong>${tripod.az360}°</strong></span>
           </div>
         `;
         container.appendChild(card);
